@@ -38,7 +38,7 @@ class Module(db.Model):
     FilteredOut = db.Column( db.Integer )
 
     def get_url(self):
-        return url_for('get_module', id=self.id, _external=True)
+        return url_for('get_module', UserId=self.UserId, _external=True)
 
     def export_data(self):
         return {
@@ -90,8 +90,8 @@ class Module(db.Model):
 def get_modules():
     return jsonify({'modules' : [ module.get_url() for module in Module.query.all() ] })
 
-@app.route('/modules/<int:id>', methods=['GET'])
-def get_module(id):
+@app.route('/modules/<string:UserId>', methods=['GET'])
+def get_module(UserId):
     # the call here passes UserId correctly, investigate get_or_404 method 
     # [SQL: u'SELECT dummy.id AS dummy_id \nFROM dummy \nWHERE dummy.id = ?'] [parameters: ('hi',)]
     # SELECT modules.UserId AS module_UserId FROM modules WHERE modules.UserId = 'aaac';
@@ -100,7 +100,7 @@ def get_module(id):
     # response = map(check_presence(response, UserId), response)
     # response = {'modules' : [ module for module in Module.query.all() ] }
     # Module.query.filter(Module.UserId==UserId)
-    '''
+    ''' Module.UserId == UserId
     all_modules = Module.query.all()
     response = []
     for module in all_modules:
@@ -108,7 +108,7 @@ def get_module(id):
             response.append(module)
     return response
     '''
-    return jsonify(Module.query.get_or_404(id).export_data())
+    return jsonify({'ids' : [ module.id for module in Module.query.all() if module.UserId==UserId  ] })
 
 @app.route('/modules/<int:id>', methods=['PUT'])
 def edit_module(id):
