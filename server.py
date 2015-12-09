@@ -108,7 +108,9 @@ def get_module(UserId):
             response.append(module)
     return response
     '''
-    return jsonify({'ids' : [ module.id for module in Module.query.all() if module.UserId==UserId  ] })
+    results = [ (module.id,module.export_data()) for module in Module.query.all() if module.UserId==UserId ]  
+    print results
+    return jsonify( results )
 
 @app.route('/modules/<int:id>', methods=['PUT'])
 def edit_module(id):
