@@ -1,9 +1,12 @@
 import os
-from flask import Flask, url_for, jsonify, request
+from flask import Flask, url_for, jsonify, request, g 
 from flask.ext.sqlalchemy import SQLAlchemy
 from datetime import datetime
 from dateutil.tz import tzutc
 from dateutil import parser as datetime_parser
+from flask.ext.httpauth import HTTPBasicAuth
+# pip install Flask-HTTPAuth
+from werkzeug.security import generate_password_hash, check_password_hash
 from utils import split_url
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -12,10 +15,29 @@ db_path = os.path.join(basedir, 'data.sqlite')
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 
+auth = HTTPBasicAuth()
 db = SQLAlchemy(app)
 
 class ValidationError(ValueError):
     pass
+
+class User(db.Model):
+    '''
+    CREATE TABLE users(
+   ...> id integer PRIMARY KEY NOT NULL,
+   ...> username string NOT NULL,
+   ...> password_hash string NOT NULL);
+    '''
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), index=True)
+    password_hash = db.Column(db.String(128))
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Module(db.Model):
     __tablename__ = 'modules'
@@ -138,6 +160,24 @@ class FilterReply(db.Model):
             raise ValidationError('Invalid row (module), missing ' + e.args[0] )
         return self
 
+@auth.verify_password
+def verify_passowrd(username, password):
+    g.user = User.query.filter_by(username=username).first()
+    if g.user is None:
+        return False
+    return g.user.verify_password(password)
+
+@app.before_request
+@auth.login_required
+def before_request():
+    pass
+
+@auth.error_handler
+def unauthorized():
+    response = jsonify({'status': 401, 'error': 'unauthorized',
+        'message' : 'please authenticate'})
+    response.status_code = 401
+    return response
 
 @app.route('/filterReplies/', methods=['POST'])
 def new_filter_reply():
