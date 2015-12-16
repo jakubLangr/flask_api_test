@@ -142,13 +142,17 @@ class FilterReply(db.Model):
 @app.route('/filterReplies/', methods=['POST'])
 def new_filter_reply():
     '''
-http POST http://localhost:5000/filterReplies/ id=1 UserId=aaaa CourseSoftwareId=aaaaa Type=AOI Answer=5 MaxAnswer=12 CreatedDate='22 Jan 2013' ModifiedDate='23 Jun 2013'
+    http POST http://localhost:5000/filterReplies/ id=1 UserId=aaaa CourseSoftwareId=aaaaa Type=AOI Answer=5 MaxAnswer=12 CreatedDate='22 Jan 2013' ModifiedDate='23 Jun 2013'
     '''
     filter_reply = FilterReply()
     filter_reply.import_data(request.json)
     db.session.add(filter_reply)
     db.session.commit()
     return jsonify({}), 201, {'Location' : filter_reply.get_url() }
+
+@app.route('/filterReplies/', methods=['GET'])
+def get_filter_replies():
+    return jsonify( {'filterReplies' : [ reply.export_data() for reply in FilterReply.query.all()]} )
 
 @app.route('/filterReplies/<int:id>', methods=['GET'])
 def get_filter_reply(id):
@@ -160,7 +164,9 @@ def get_modules():
 
 @app.route('/modules/<string:UserId>', methods=['GET'])
 def get_module(UserId):
-    results = [ (module.id,module.export_data()) for module in Module.query.all() if module.UserId==UserId ]  
+    # results = [ (module.id,module.export_data()) for module in Module.query.all() if module.UserId==UserId ] 
+    # The below is probably a better way to do it
+    results = [ (module.id, module.export_data()) for module in  Module.query.filter_by(UserId=UserId).all() ]  
     return jsonify( results )
 
 @app.route('/modules/<int:id>', methods=['PUT'])
