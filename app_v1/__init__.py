@@ -1,6 +1,8 @@
 import os
 from flask import Flask, jsonify, g
 from flask.ext.sqlalchemy import SQLAlchemy
+from datetime import datetime
+from dateutil import parser as datetime_parser
 
 db = SQLAlchemy()
 
@@ -55,7 +57,32 @@ def create_app(config_name):
     def get_filter_reply(id):
         return jsonify(FilterReply.query.get_or_404(id).export_data())
 
-    #@app.route('/filterReplies/<')
+    @app.route('/filterReplies/<int:id>', methods=['PATCH'])
+    def modify_filter_reply(id):
+        filter_reply = FilterReply.query.get_or_404(id)
+        filter_reply_data = filter_reply.export_data()
+        new_data = request.json 
+        for datum in new_data.keys():
+            filter_reply_data[datum] = new_data[datum]
+
+        # this ridiculousness is because of bs way that python handles datetime and the
+        # inability of SQLite to convert timezone aware to naive datetimes  
+        filter_reply_data['ModifiedDate'] = datetime.utcnow().isoformat()
+        filter_reply_data['CreatedDate'] = datetime_parser.parse(filter_reply_data['CreatedDate']).replace(tzinfo=None).isoformat()
+        filter_reply.import_data(filter_reply_data)
+        db.session.add(filter_reply)
+        db.session.commit()
+        return jsonify({})
+
+    @app.route('/filterReplies/<string:CourseSoftwareId>/<string:UserId>', methods=['GET'])
+    def get_filter_reply_id(CourseSoftwareId,UserId):
+        '''
+        http --auth jakub:Freeman GET http://localhost:5000/filterReplies/aaaaa/aaaa
+        '''
+        results = FilterReply.query.filter_by(CourseSoftwareId=CourseSoftwareId,
+            UserId=UserId)
+        results = { 'ids' : [result.id for result in results ] }
+        return jsonify( results )
 
     @app.route('/modules/', methods=['GET'])
     def get_modules():
@@ -71,13 +98,12 @@ def create_app(config_name):
         '''
         http --auth jakub:Freeman GET http://localhost:5000/module-id/aaaaa/bbbbb/aaac
         '''
-        
         results = Module.query.filter_by(CourseSoftwareId=CourseSoftwareId,
             CourseMaterialId=CourseMaterialId, UserId=UserId).all()
         results = {'ids': [ result.id for result in results ] }
         return jsonify( results )
 
-    @app.route('/modules/<int:id>', methods=['PATCH'])
+    @app.route('/modules/<int:id>', methods=['PUT'])
     def edit_module(id):
         module = Module.query.get_or_404(id)
         module.import_data(request.json)
