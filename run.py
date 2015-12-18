@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
-from __init__ import create_app, db
-from models import User, Module, FilterReply
+from app_v1.__init__ import create_app, db
+from app_v1.models import User, Module, FilterReply
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(basedir, '../data.sqlite')

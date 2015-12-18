@@ -55,18 +55,29 @@ def create_app(config_name):
     def get_filter_reply(id):
         return jsonify(FilterReply.query.get_or_404(id).export_data())
 
+    #@app.route('/filterReplies/<')
+
     @app.route('/modules/', methods=['GET'])
     def get_modules():
         return jsonify({'modules' : [ module.get_url() for module in Module.query.all() ] })
 
     @app.route('/modules/<string:UserId>', methods=['GET'])
     def get_module(UserId):
-        # results = [ (module.id,module.export_data()) for module in Module.query.all() if module.UserId==UserId ] 
-        # The below is probably a better way to do it
         results = [ (module.id, module.export_data()) for module in  Module.query.filter_by(UserId=UserId).all() ]  
         return jsonify( results )
 
-    @app.route('/modules/<int:id>', methods=['PUT'])
+    @app.route('/module-id/<string:CourseSoftwareId>/<string:CourseMaterialId>/<string:UserId>', methods=['GET'])
+    def get_module_id(CourseMaterialId,CourseSoftwareId,UserId):
+        '''
+        http --auth jakub:Freeman GET http://localhost:5000/module-id/aaaaa/bbbbb/aaac
+        '''
+        
+        results = Module.query.filter_by(CourseSoftwareId=CourseSoftwareId,
+            CourseMaterialId=CourseMaterialId, UserId=UserId).all()
+        results = {'ids': [ result.id for result in results ] }
+        return jsonify( results )
+
+    @app.route('/modules/<int:id>', methods=['PATCH'])
     def edit_module(id):
         module = Module.query.get_or_404(id)
         module.import_data(request.json)

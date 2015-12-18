@@ -18,24 +18,11 @@ db = SQLAlchemy(app)
 class ValidationError(ValueError):
     pass
 
-@auth.verify_password
-def verify_passowrd(username, password):
-    g.user = User.query.filter_by(username=username).first()
-    if g.user is None:
-        return False
-    return g.user.verify_password(password)
-
 @app.before_request
 @auth.login_required
 def before_request():
     pass
 
-@auth.error_handler
-def unauthorized():
-    response = jsonify({'status': 401, 'error': 'unauthorized',
-        'message' : 'please authenticate'})
-    response.status_code = 401
-    return response
 
 @app.route('/filterReplies/', methods=['POST'])
 def new_filter_reply():
