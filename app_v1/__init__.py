@@ -103,10 +103,19 @@ def create_app(config_name):
         results = {'ids': [ result.id for result in results ] }
         return jsonify( results )
 
-    @app.route('/modules/<int:id>', methods=['PUT'])
+    @app.route('/modules/<int:id>', methods=['PATCH'])
     def edit_module(id):
         module = Module.query.get_or_404(id)
-        module.import_data(request.json)
+        module_data = module.export_data()
+        new_data = request.json 
+        for datum in new_data.keys():
+            module_data[datum] = new_data[datum]
+
+        # this ridiculousness is because of bs way that python handles datetime and the
+        # inability of SQLite to convert timezone aware to naive datetimes  
+        module_data['ModifiedDate'] = datetime.utcnow().isoformat()
+        module_data['CreatedDate'] = datetime_parser.parse(module_data['CreatedDate']).replace(tzinfo=None).isoformat()
+        module.import_data(module_data)
         db.session.add(module)
         db.session.commit()
         return jsonify({})
