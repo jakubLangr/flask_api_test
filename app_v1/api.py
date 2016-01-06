@@ -2,7 +2,6 @@ import os
 from flask import Flask, jsonify, g
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Blueprint
-from . import routes
 
 
 db = SQLAlchemy()
@@ -31,15 +30,15 @@ def create_app(config_name):
         return jsonify({'token': g.user.generate_auth_token()})
 
     # register blueprints
-    from . import api as api_blueprint
-    app.register_blueprint(api_blueprint)
+    #from .api_v1 import api as api_blueprint
+    #app.register_blueprint(api_blueprint, url_prefix='/api/v1')
 
     @app.before_request
     @auth.login_required
     def before_request():
         pass
     
-    # get routes
+    # get routes    
     cfg = os.path.join(os.getcwd(), 'app_v1', 'routes.py')
     app.config.from_pyfile(cfg)
 

@@ -5,8 +5,8 @@ from datetime import datetime
 from dateutil.tz import tzutc
 from dateutil import parser as datetime_parser
 from werkzeug.security import generate_password_hash, check_password_hash
-from utils import split_url
-from __init__ import db
+from .utils import split_url
+from . import db
 
 
 class User(db.Model):

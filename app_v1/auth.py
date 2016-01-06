@@ -1,7 +1,6 @@
 from flask import  jsonify, current_app, g 
-# pip install Flask-HTTPAuth
 from flask.ext.httpauth import HTTPBasicAuth
-from models import User
+from .models import User
 
 auth = HTTPBasicAuth()
 auth_token = HTTPBasicAuth()
