@@ -1,10 +1,12 @@
 from flask import jsonify, request
 from datetime import datetime
 from dateutil import parser as datetime_parser
-from flask import url_for, current_app
-from app_v1 import api   
+from flask import url_for, current_app, Blueprint
+from .models import User, Module, FilterReply
 
-# import sys; print(sys.version)
+
+api = Blueprint('api', __name__)
+
 
 @api.route('/filterReplies/', methods=['POST'])
 def new_filter_reply():
