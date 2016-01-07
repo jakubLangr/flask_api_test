@@ -18,7 +18,7 @@ def new_filter_reply():
     filter_reply.import_data(request.json)
     db.session.add(filter_reply)
     db.session.commit()
-    return jsonify({}), 201, {'Location' : filter_reply.get_url() }
+    return jsonify({}), 201, {'Location' : filter_reply.id } # this also needs to be changed? seems correct
 
 @api.route('/filterReplies/', methods=['GET'])
 def get_filter_replies():
@@ -26,10 +26,16 @@ def get_filter_replies():
 
 @api.route('/filterReplies/<int:id>', methods=['GET'])
 def get_filter_reply(id):
+    '''
+    http --auth jakub:Freeman GET http://localhost:5000/filterReplies/1
+    '''
     return jsonify(FilterReply.query.get_or_404(id).export_data())
 
 @api.route('/filterReplies/<int:id>', methods=['PATCH'])
 def modify_filter_reply(id):
+    '''
+    http  --auth jakub:Freeman PATCH http://localhost:5000/filterReplies/2 UserId='Jakub Langr'
+    '''
     filter_reply = FilterReply.query.get_or_404(id)
     filter_reply_data = filter_reply.export_data()
     new_data = request.json 
