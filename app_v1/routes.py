@@ -18,7 +18,8 @@ def new_filter_reply():
     filter_reply.import_data(request.json)
     db.session.add(filter_reply)
     db.session.commit()
-    return jsonify({}), 201, {'Location' : filter_reply.id } # this also needs to be changed? seems correct
+    return jsonify({}), 201, {'Location' : filter_reply.id } 
+    # this also needs to be changed? seems correct, is missing /filterReplies/
 
 @api.route('/filterReplies/', methods=['GET'])
 def get_filter_replies():
@@ -61,17 +62,25 @@ def get_filter_reply_id(CourseSoftwareId,UserId):
     results = { 'ids' : [result.id for result in results ] }
     return jsonify( results )
 
+
+
+
+
+
 @api.route('/modules/', methods=['GET'])
 def get_modules():
-    return jsonify({'modules' : [ module.get_url() for module in Module.query.all() ] })
+    return jsonify({'module ids' : [ module.id for module in Module.query.all() ] })
 
 @api.route('/modules/<int:id>', methods=['GET'])
 def get_module(id):
+    '''
+    http --auth jakub:Freeman GET http://localhost:5000/modules/12
+    '''
         # callback = [ module.export_data() for module in callback ]  
         # results['response'] = callback
         # results = [ (module.export_data(), 'hi') for module in  Module.query.filter_by(UserId=UserId).all() ]  
     # results = { 'response ids' : [ module.id for module in Module.query.filter_by(UserId=UserId).all() ] }
-    return jsonify( Module.query.get_or_404(id).export_data(œ) )
+    return jsonify( Module.query.get_or_404(id).export_data() )
 
 @api.route('/module-id/<string:CourseSoftwareId>/<string:CourseMaterialId>/<string:UserId>', methods=['GET'])
 def get_module_id(CourseMaterialId,CourseSoftwareId,UserId):
@@ -85,6 +94,9 @@ def get_module_id(CourseMaterialId,CourseSoftwareId,UserId):
 
 @api.route('/modules/<int:id>', methods=['PATCH'])
 def edit_module(id):
+    '''
+    http --auth jakub:Freeman PATCH http://localhost:5000/12 UserId='jaaaak'
+    '''
     module = Module.query.get_or_404(id)
     module_data = module.export_data()
     new_data = request.json 
@@ -111,4 +123,4 @@ def new_module():
     module.import_data(request.json)
     db.session.add(module)
     db.session.commit()
-    return jsonify({}), 201, {'Location': module.get_url()}
+    return jsonify({}), 201, {'Location': module.id} # again, not .self_url() ? is missing /modules/
