@@ -42,7 +42,7 @@ class Module(db.Model):
     FilteredOut = db.Column( db.Integer )
 
     def get_url(self):
-        return url_for('get_module', UserId=self.UserId, _external=True)
+        return url_for('get_module', id=self.id, _external=True)
 
     def export_data(self):
         return {
@@ -106,11 +106,12 @@ class FilterReply(db.Model):
     ModifiedDate = db.Column(db.DateTime, default=datetime.now)
 
     def get_url(self):
-        return url_for('get_filter_reply', id=self.id, _external=True)
+        print( url_for('get_filter_reply', id=self.id , _external=True ) )
+        return url_for('get_filter_reply', id=self.id , _external=True)
 
     def export_data(self):
         return {
-            'self_url' : self.get_url(),
+            # 'self_url' : self.get_url(),
             'id' : self.id,
             'UserId': self.UserId,
             'CourseSoftwareId' : self.CourseSoftwareId,

@@ -3,6 +3,7 @@ from datetime import datetime
 from dateutil import parser as datetime_parser
 from flask import url_for, current_app, Blueprint
 from .models import User, Module, FilterReply
+from .__init__ import db 
 
 
 api = Blueprint('api', __name__)
@@ -58,10 +59,13 @@ def get_filter_reply_id(CourseSoftwareId,UserId):
 def get_modules():
     return jsonify({'modules' : [ module.get_url() for module in Module.query.all() ] })
 
-@api.route('/modules/<string:UserId>', methods=['GET'])
-def get_module(UserId):
-    results = [ (module.id, module.export_data()) for module in  Module.query.filter_by(UserId=UserId).all() ]  
-    return jsonify( results )
+@api.route('/modules/<int:id>', methods=['GET'])
+def get_module(id):
+        # callback = [ module.export_data() for module in callback ]  
+        # results['response'] = callback
+        # results = [ (module.export_data(), 'hi') for module in  Module.query.filter_by(UserId=UserId).all() ]  
+    # results = { 'response ids' : [ module.id for module in Module.query.filter_by(UserId=UserId).all() ] }
+    return jsonify( Module.query.get_or_404(id).export_data(œ) )
 
 @api.route('/module-id/<string:CourseSoftwareId>/<string:CourseMaterialId>/<string:UserId>', methods=['GET'])
 def get_module_id(CourseMaterialId,CourseSoftwareId,UserId):
@@ -93,7 +97,7 @@ def edit_module(id):
 @api.route('/modules/', methods=['POST'])
 def new_module():
     '''
-    http POST http://localhost:5000/modules/ UserId='aaac' CourseSoftwareId='aaaaa' CourseMaterialId='bbbbb' N2K=.25 DAK=.32 Included=1 FilteredOut=0 CreatedDate='22 Jan 2013' ModifiedDate='23 Jun 2013'
+    http --auth jakub:Freeman POST http://localhost:5000/modules/ UserId='aaac' CourseSoftwareId='aaaaa' CourseMaterialId='bbbbb' N2K=.25 DAK=.32 Included=1 FilteredOut=0 CreatedDate='22 Jan 2013' ModifiedDate='23 Jun 2013'
 
     Location: http://localhost:5000/modules/aaac
     '''
