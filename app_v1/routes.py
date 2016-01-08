@@ -76,10 +76,6 @@ def get_module(id):
     '''
     http --auth jakub:Freeman GET http://localhost:5000/modules/12
     '''
-        # callback = [ module.export_data() for module in callback ]  
-        # results['response'] = callback
-        # results = [ (module.export_data(), 'hi') for module in  Module.query.filter_by(UserId=UserId).all() ]  
-    # results = { 'response ids' : [ module.id for module in Module.query.filter_by(UserId=UserId).all() ] }
     return jsonify( Module.query.get_or_404(id).export_data() )
 
 @api.route('/module-id/<string:CourseSoftwareId>/<string:CourseMaterialId>/<string:UserId>', methods=['GET'])
@@ -123,4 +119,4 @@ def new_module():
     module.import_data(request.json)
     db.session.add(module)
     db.session.commit()
-    return jsonify({}), 201, {'Location': module.id} # again, not .self_url() ? is missing /modules/
+    return jsonify({}), 201, {'Location': '/modules/' + str(module.id)} # again, not .self_url() ? is missing /modules/

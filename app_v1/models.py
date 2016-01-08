@@ -1,10 +1,11 @@
 import os
-from flask import Flask, url_for, jsonify, request, g 
+from flask import Flask, url_for, jsonify, request, g, current_app
 from flask.ext.sqlalchemy import SQLAlchemy
 from datetime import datetime
 from dateutil.tz import tzutc
 from dateutil import parser as datetime_parser
 from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from .utils import split_url
 from .__init__ import db
 
@@ -26,6 +27,19 @@ class User(db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def generate_auth_token(self, expires_in=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expires_in=expires_in)
+        return s.dumps({'id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])
 
 class Module(db.Model):
     __tablename__ = 'modules'

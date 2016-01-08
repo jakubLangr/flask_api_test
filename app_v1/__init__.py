@@ -30,9 +30,10 @@ def create_app(config_name):
     from app_v1.routes import api
     app.register_blueprint(api)
 
-    @app.before_request
-    @auth.login_required
+    from .auth import auth_token
+    @api.before_request
+    @auth_token.login_required
     def before_request():
+        """All routes in this blueprint require authentication."""
         pass
-
     return app
