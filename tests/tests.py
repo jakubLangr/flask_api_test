@@ -1,7 +1,7 @@
 import unittest
 from werkzeug.exceptions import NotFound
 from app_v1 import create_app, db
-from app_v1.models import User
+from app_v1.models import User, ValidationError
 from .test_client import TestClient
 
 
@@ -33,9 +33,8 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(rv.status_code == 200)
         self.assertTrue(json['module ids'] == [] )
 
-        # add a customer
-        rv, json = self.client.post('/modules/',
-                                    data={ 'UserId' : 'aaaaa',
+        # add a module data 
+        module_data = { 'UserId' : 'aaaaa',
                                     'CourseMaterialId' : 'bbbbb',
                                     'CourseSoftwareId' : 'ExcelYYY',
                                     'N2K' : .25,
@@ -43,7 +42,9 @@ class TestAPI(unittest.TestCase):
                                     'Included' : 1,
                                     'FilteredOut': 0,
                                     'CreatedDate' : '22 Jan 2013',
-                                    'ModifiedDate' : '23 Jun 2013' } )
+                                    'ModifiedDate' : '23 Jun 2013' } 
+        rv, json = self.client.post('/modules/',
+                                    data=module_data)
 
         self.assertTrue(rv.status_code == 201)
         location = rv.headers['Location']
@@ -54,42 +55,82 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(rv.status_code == 200)
         
         # gets location = '/modules/1' to int(1) 
+        # is this the best way to do this?
         self.assertTrue(json['module ids'] == [ int(location.split('/')[2])  ])
 
         # edit the customer
+        rv, json = self.client.patch(location, data={'UserId': 'zzzz'})
+        self.assertTrue(rv.status_code == 200)
+        rv, json = self.client.get(location)
+        self.assertTrue(rv.status_code == 200)
+        self.assertTrue(json['UserId'] == 'zzzz')
+
+
+        # testing module (unique) id functionality, then delete
+        url = '/module-id/' + str(module_data['CourseSoftwareId']) + '/' + str(module_data['CourseMaterialId'])
+        url += '/' + 'zzzz'
+        rv, json = self.client.get(url)
+        
+        location = json['ids'][0]
+        location = '/modules/' + str(location)
+
+        rv, json = self.client.delete(location)
+
+    def test_filter_replies(self):
+        # get list of replies
+        rv, json = self.client.get('/filterReplies/')
+        self.assertTrue(rv.status_code == 200)
+        self.assertTrue(type(json['filterReplies']) == type([]))
+
+        # add a set of replies
+        posted_data = {'UserId': 'aaaa',
+                        'CourseSoftwareId' : 'bbbbb',
+                        'Answer' : 5.0, 
+                        'MaxAnswer': 12,
+                        'CreatedDate': '22 Jan 2013',
+                        'ModifiedDate': '22 Jun 2013'}
+
+        with self.assertRaises(ValidationError):
+            self.client.post('/filterReplies/',
+                                data=posted_data)
+
+        posted_data['Type'] = 'AOI'
+        rv, json = self.client.post('/filterReplies/',
+                                    data=posted_data)
+
+
+        location = '/filterReplies/' + rv.headers['Location']
+        rv, json = self.client.get(location)
+        self.assertTrue(rv.status_code == 200)
+        self.assertTrue(json['UserId'] == 'aaaa')
+        rv, json = self.client.get('/filterReplies/')
+        self.assertTrue(rv.status_code == 200)
+        response = json['filterReplies']
+        del response[0]['id']
+        posted_data['CreatedDate'] = response[0]['CreatedDate']
+        posted_data['ModifiedDate'] = response[0]['ModifiedDate']
+        self.assertTrue(response == [posted_data])
+
+        # get the ids of a filterReply by CSI and UserId
+        self.client.post('/filterReplies/',data=posted_data)
+        rv, json = self.client.get('/filterReplies/bbbbb/aaaa')
+        self.assertTrue(len(json['ids']) == 2) 
+
+        # edit the list of replies
         rv, json = self.client.patch(location, data={'UserId': 'Jakub Langr'})
         self.assertTrue(rv.status_code == 200)
         rv, json = self.client.get(location)
         self.assertTrue(rv.status_code == 200)
         self.assertTrue(json['UserId'] == 'Jakub Langr')
 
-        rv, json = self.client.delete(location)
+        # delete both objects, obtain the unique id for the second
+        self.client.delete(location)
+        rv, json = self.client.get('/filterReplies/')
+
+        location = '/filterReplies/' + str(json['filterReplies'][0]['id'])
+        self.client.delete(location)
+
 '''
-
-    def test_products(self):
-        # get list of products
-        rv, json = self.client.get('/api/v1/products/')
-        self.assertTrue(rv.status_code == 200)
-        self.assertTrue(json['products'] == [])
-
-        # add a customer
-        rv, json = self.client.post('/api/v1/products/',
-                                    data={'name': 'prod1'})
-        self.assertTrue(rv.status_code == 201)
-        location = rv.headers['Location']
-        rv, json = self.client.get(location)
-        self.assertTrue(rv.status_code == 200)
-        self.assertTrue(json['name'] == 'prod1')
-        rv, json = self.client.get('/api/v1/products/')
-        self.assertTrue(rv.status_code == 200)
-        self.assertTrue(json['products'] == [location])
-
-        # edit the customer
-        rv, json = self.client.put(location, data={'name': 'product1'})
-        self.assertTrue(rv.status_code == 200)
-        rv, json = self.client.get(location)
-        self.assertTrue(rv.status_code == 200)
-        self.assertTrue(json['name'] == 'product1')
 
     def test_orders_and_items(self):
         # define a customer

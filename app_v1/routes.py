@@ -62,7 +62,12 @@ def get_filter_reply_id(CourseSoftwareId,UserId):
     results = { 'ids' : [result.id for result in results ] }
     return jsonify( results )
 
-
+@api.route('/filterReplies/<int:id>', methods=['DELETE'])
+def delete_filter_reply(id):
+    filter_reply = FilterReply.query.get_or_404(id)
+    db.session.delete(filter_reply)
+    db.session.commit()
+    return jsonify({})
 
 
 
@@ -127,6 +132,10 @@ def delete_module(id):
     db.session.delete(module)
     db.session.commit()
     return jsonify({})
+
+
+
+
 
 
 @api.errorhandler(ValidationError)
