@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import coverage
-COV = coverage.coverage(branch=True, include='app/*')
+COV = coverage.coverage(branch=True, include='app_v1/*')
 COV.start()
 
 import unittest

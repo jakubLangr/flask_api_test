@@ -9,6 +9,9 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from .utils import split_url
 from .__init__ import db
 
+class ValidationError(ValueError):
+    pass
+
 
 class User(db.Model):
     '''

@@ -2,7 +2,7 @@ from flask import jsonify, request
 from datetime import datetime
 from dateutil import parser as datetime_parser
 from flask import url_for, current_app, Blueprint
-from .models import User, Module, FilterReply
+from .models import User, Module, FilterReply, ValidationError
 from .__init__ import db 
 
 
@@ -120,3 +120,42 @@ def new_module():
     db.session.add(module)
     db.session.commit()
     return jsonify({}), 201, {'Location': '/modules/' + str(module.id)} # again, not .self_url() ? is missing /modules/
+
+@api.route('/modules/<int:id>', methods=['DELETE'])
+def delete_module(id):
+    module = Module.query.get_or_404(id)
+    db.session.delete(module)
+    db.session.commit()
+    return jsonify({})
+
+
+@api.errorhandler(ValidationError)
+def bad_request(e):
+    response = jsonify({'status': 400, 'error': 'bad request',
+                        'message': e.args[0]})
+    response.status_code = 400
+    return response
+
+
+@api.app_errorhandler(404)  # this has to be an app-wide handler
+def not_found(e):
+    response = jsonify({'status': 404, 'error': 'not found',
+                        'message': 'invalid resource URI'})
+    response.status_code = 404
+    return response
+
+
+@api.errorhandler(405)
+def method_not_supported(e):
+    response = jsonify({'status': 405, 'error': 'method not supported',
+                        'message': 'the method is not supported'})
+    response.status_code = 405
+    return response
+
+
+@api.app_errorhandler(500)  # this has to be an app-wide handler
+def internal_server_error(e):
+    response = jsonify({'status': 500, 'error': 'internal server error',
+                        'message': e.args[0]})
+    response.status_code = 500
+    return response

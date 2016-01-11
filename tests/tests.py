@@ -26,17 +26,18 @@ class TestAPI(unittest.TestCase):
         db.drop_all()
         self.ctx.pop()
 
-    def test_customers(self):
+    def test_modules(self):
+
         # get list of customers
         rv, json = self.client.get('/modules/')
-        print( rv, json )
         self.assertTrue(rv.status_code == 200)
-        self.assertTrue(json['modules'] == {'module ids': [] })
+        self.assertTrue(json['module ids'] == [] )
 
         # add a customer
         rv, json = self.client.post('/modules/',
                                     data={ 'UserId' : 'aaaaa',
                                     'CourseMaterialId' : 'bbbbb',
+                                    'CourseSoftwareId' : 'ExcelYYY',
                                     'N2K' : .25,
                                     'DAK' : .32,
                                     'Included' : 1,
@@ -51,14 +52,18 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(json['UserId'] == 'aaaaa')
         rv, json = self.client.get('/modules/')
         self.assertTrue(rv.status_code == 200)
-        self.assertTrue(json['customers'] == [location])
+        
+        # gets location = '/modules/1' to int(1) 
+        self.assertTrue(json['module ids'] == [ int(location.split('/')[2])  ])
 
         # edit the customer
-        rv, json = self.client.put(location, data={'UserId': 'Jakub Langr'})
+        rv, json = self.client.patch(location, data={'UserId': 'Jakub Langr'})
         self.assertTrue(rv.status_code == 200)
         rv, json = self.client.get(location)
         self.assertTrue(rv.status_code == 200)
-        self.assertTrue(json['name'] == 'Jakub Langr')
+        self.assertTrue(json['UserId'] == 'Jakub Langr')
+
+        rv, json = self.client.delete(location)
 '''
 
     def test_products(self):
