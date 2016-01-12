@@ -77,19 +77,6 @@ class Module(db.Model):
         }
 
     def import_data(self, data):
-        ''' Schema: 
-            CREATE TABLE modules (
-                 id integer PRIMARY KEY NOT NULL,
-                 UserId integer NOT NULL,
-                 CourseSoftwareId NOT NULL, 
-                 CourseMaterialId NOT NULL,
-                 N2K float,
-                 DAK float,
-                 Included Integer,
-                 FilteredOut Integer,
-                 CreatedDate datetime,
-                 ModifiedDate datetime
-                 ); '''
         try:
             # self.id = data['id']
             self.UserId = data['UserId']
@@ -141,17 +128,6 @@ class FilterReply(db.Model):
 
     def import_data(self, data):
         try:
-            ''' Schema
-            CREATE TABLE filterReplies ( 
-                id Integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-                UserId String NOT NULL,
-                CourseSoftwareId string NOT NULL,
-                Type String,
-                Answer Float,
-                MaxAnswer Integer,
-                CreatedDate datetime,
-                ModifiedDate datetime);'''
-
             # self.id = data['id']
             self.UserId = data['UserId']
             self.CourseSoftwareId = data['CourseSoftwareId']

@@ -1,3 +1,5 @@
+import pandas as pd
+
 from flask import jsonify, request
 from datetime import datetime
 from dateutil import parser as datetime_parser
@@ -83,6 +85,7 @@ def get_module(id):
     '''
     return jsonify( Module.query.get_or_404(id).export_data() )
 
+# NOT ENTIRELY SURE IF THIS IS A NECESSARY METHOD TO HAVE?
 @api.route('/module-id/<string:CourseSoftwareId>/<string:CourseMaterialId>/<string:UserId>', methods=['GET'])
 def get_module_id(CourseMaterialId,CourseSoftwareId,UserId):
     '''
@@ -92,6 +95,7 @@ def get_module_id(CourseMaterialId,CourseSoftwareId,UserId):
         CourseMaterialId=CourseMaterialId, UserId=UserId).all()
     results = {'ids': [ result.id for result in results ] }
     return jsonify( results )
+
 
 @api.route('/modules/<int:id>', methods=['PATCH'])
 def edit_module(id):
@@ -133,6 +137,26 @@ def delete_module(id):
     db.session.commit()
     return jsonify({})
 
+
+
+
+@api.route('/calc-syllabus/<string:CourseSoftwareId>/<string:UserId>', methods=['GET'])
+def get_set_replies(CourseSoftwareId,UserId):
+    '''
+    http --auth jakub:Freeman GET http://localhost:5000/calc-syllabus/aaaaa/aaac
+    '''
+    results = FilterReply.query.filter_by(CourseSoftwareId=CourseSoftwareId,
+                                        UserId=UserId).all()
+    callback = [ result.export_data() for result in results ]
+    results = {'results': callback }
+    filter_replies = pd.DataFrame.from_dict(callback)
+    filter_replies.Answer = filter_replies.Answer / filter_replies.MaxAnswer
+
+    pt = filter_replies.pivot_table(index='UserId', columns='Type',values='Answer')
+    pt_filled = pt.fillna(pt.mean())
+    
+    print( pt_filled )
+    return jsonify( results )
 
 
 
