@@ -1,7 +1,7 @@
 import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-db_path = os.path.join(basedir, '../data-test.sqlite')
+db_path = os.path.join(basedir, '../tests/data-test.sqlite')
 
 DEBUG = False
 TESTING = True
